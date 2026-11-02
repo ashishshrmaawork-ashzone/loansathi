@@ -21,6 +21,7 @@ function getNextDueDate(loan: Loan) {
 
 export default function LoanDetailsPage() {
   const params = useParams<{ id: string }>();
+  const loanId = params?.id;
   const router = useRouter();
   const [data, setData] = useState<LoanDetail | null>(null);
   const [error, setError] = useState("");
@@ -37,7 +38,8 @@ export default function LoanDetailsPage() {
   });
 
   const load = useCallback(async () => {
-    const result = await api<LoanDetail>(`/loans/${params.id}`);
+    if (!loanId) return;
+    const result = await api<LoanDetail>(`/loans/${loanId}`);
     setData(result);
     setPayment((current) => ({
       ...current,
@@ -45,19 +47,20 @@ export default function LoanDetailsPage() {
       emiNumber: String(Math.max(1, result.loan.lastEmiNumber + 1)),
       paymentAmount: String(result.loan.emiAmount),
     }));
-  }, [params.id]);
+  }, [loanId]);
 
   useEffect(() => {
+    if (!loanId) return;
     load().catch((reason: unknown) => setError(reason instanceof ApiError ? reason.message : "Could not load loan details."));
-  }, [load]);
+  }, [load, loanId]);
 
   async function submitPayment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!data) return;
+    if (!data || !loanId) return;
     setSaving(true);
     setError("");
     try {
-      await api(`/loans/${params.id}/payments`, {
+      await api(`/loans/${loanId}/payments`, {
         method: "POST",
         body: jsonBody({
           ...payment,
@@ -76,9 +79,10 @@ export default function LoanDetailsPage() {
   }
 
   async function deletePayment(paymentId: string) {
+    if (!loanId) return;
     if (!window.confirm("Delete this payment record?")) return;
     try {
-      await api(`/loans/${params.id}/payments/${paymentId}`, { method: "DELETE" });
+      await api(`/loans/${loanId}/payments/${paymentId}`, { method: "DELETE" });
       await load();
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.message : "Could not delete payment.");
@@ -86,16 +90,17 @@ export default function LoanDetailsPage() {
   }
 
   async function deleteLoan() {
+    if (!loanId) return;
     if (!window.confirm("Delete this loan and all its payment history?")) return;
     try {
-      await api(`/loans/${params.id}`, { method: "DELETE" });
+      await api(`/loans/${loanId}`, { method: "DELETE" });
       router.replace("/loans");
     } catch (reason) {
       setError(reason instanceof ApiError ? reason.message : "Could not delete loan.");
     }
   }
 
-  if (!data) return <AppShell title="Loan details">{error ? <div className="notice notice-bad">{error}</div> : <div className="loading-panel">Loading loan details…</div>}</AppShell>;
+  if (!loanId || !data) return <AppShell title="Loan details">{error ? <div className="notice notice-bad">{error}</div> : <div className="loading-panel">Loading loan details…</div>}</AppShell>;
   const { loan, payments } = data;
   const progress = loan.principal ? Math.min(100, (loan.principalPaid / loan.principal) * 100) : 0;
 

@@ -21,6 +21,7 @@ export function AppShell({
 }) {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
+  const currentPath = pathname ?? "";
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutError, setLogoutError] = useState("");
@@ -59,8 +60,8 @@ export function AppShell({
           {navItems.map((item) => {
             const active =
               item.href === "/"
-                ? pathname === "/"
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                ? currentPath === "/"
+                : currentPath === item.href || currentPath.startsWith(`${item.href}/`);
             return (
               <Link
                 key={item.href}
@@ -78,7 +79,7 @@ export function AppShell({
             <span className="eyebrow">YOUR FINANCES</span>
             <p>Every repayment, in one clear view.</p>
           </div>
-          <Link className={pathname === "/security" ? "nav-link active" : "nav-link"} href="/security">
+          <Link className={currentPath === "/security" ? "nav-link active" : "nav-link"} href="/security">
             <span className="nav-icon">◇</span>Security
           </Link>
           <button className="nav-link signout" onClick={() => void handleLogout()}>

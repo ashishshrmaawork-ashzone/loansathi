@@ -1,7 +1,8 @@
 const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL;
 const API_URL = (
-  configuredApiUrl ??
-  (process.env.NODE_ENV === "production" ? "" : "http://localhost:4001/api")
+  process.env.NODE_ENV === "production"
+    ? "/api"
+    : (configuredApiUrl ?? "http://localhost:4001/api")
 ).replace(/\/+$/, "");
 
 export class ApiError extends Error {
@@ -19,7 +20,7 @@ export async function api<T>(
 ): Promise<T> {
   if (!API_URL) {
     throw new ApiError(
-      "Live API is not configured. Set NEXT_PUBLIC_API_URL in Vercel to your deployed API URL.",
+      "The API is not configured. Set NEXT_PUBLIC_API_URL or use the deployed serverless API.",
       0,
     );
   }
