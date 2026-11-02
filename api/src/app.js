@@ -403,7 +403,7 @@ export async function startServer() {
     });
     console.info(`Created initial administrator "${ADMIN_USERNAME.trim()}".`);
   }
-  const port = Number(process.env.API_PORT ?? 4001);
+  const port = Number(process.env.PORT ?? process.env.API_PORT ?? 4001);
   app.listen(port, () => console.info(`Loan Sathi API listening on port ${port}.`));
 }
 
